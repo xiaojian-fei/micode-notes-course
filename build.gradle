@@ -1,0 +1,67 @@
+// ============================================================================
+//  MiCode 便签（小米便签开源版）Gradle 构建脚本
+//  原工程是 Eclipse/ADT 结构：AndroidManifest.xml + src/ + res/ 都在项目根目录。
+//  这里用 sourceSets 显式指向原目录，尽量不改动原始源码的目录结构。
+// ============================================================================
+plugins {
+    id 'com.android.application' version '8.4.0'
+}
+
+// ---- 读取 Android SDK 路径（local.properties 优先，其次环境变量）----
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+}
+def sdkDirPath = localProperties.getProperty('sdk.dir')
+        ?: System.getenv('ANDROID_HOME')
+        ?: System.getenv('ANDROID_SDK_ROOT')
+
+android {
+    namespace 'net.micode.notes'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'net.micode.notes'
+        // 原工程 minSdkVersion=14；因 Notification.Builder.build() 需要 API 16
+        //（原代码用的 Notification.setLatestEventInfo() 已在 API 23 被移除），
+        // 这里相应提升到 16。
+        minSdk 16
+        // 原工程是 2014 年的代码，targetSdk 保持较低版本以保留其原有运行时行为
+        targetSdk 22
+        versionCode 1
+        versionName '0.1'
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    // org.apache.http 自 API 23 起从 Android SDK 中移除，而原工程
+    // net.micode.notes.gtask.remote.GTaskClient 仍在使用它，因此编译期引入
+    // SDK 自带的 legacy 库；运行期由系统的 org.apache.http.legacy 共享库提供
+    // （见 AndroidManifest.xml 中的 <uses-library>）。
+    compileOnly files("${sdkDirPath}/platforms/android-34/optional/org.apache.http.legacy.jar")
+}

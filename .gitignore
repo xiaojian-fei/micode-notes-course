@@ -1,0 +1,15 @@
+# generated files
+bin/
+gen/
+
+# Local configuration file (sdk path, etc)
+project.properties
+.settings/
+.classpath
+.project
+
+# Gradle outputs, local SDK path, and personal editor settings
+.gradle/
+build/
+local.properties
+.vscode/
