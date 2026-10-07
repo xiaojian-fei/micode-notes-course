@@ -35,6 +35,19 @@ import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.data.NotesDatabaseHelper.TABLE;
 
 
+/**
+ * 为便签应用提供统一的本地数据访问入口。
+ * <p>本类继承 Android ContentProvider，不显式实现接口。
+ * query()、insert()、update()、delete() 按 Uri 分派操作，
+ * 数据库创建和升级交给 NotesDatabaseHelper。
+ * 查询结果登记通知 Uri，数据修改后发送变更通知，
+ * 供 ContentResolver 的调用方观察数据变化。
+ * getType() 在当前版本仍返回 null，未实现类型查询。
+ * </p>
+ *
+ * @see NotesDatabaseHelper
+ * @see android.content.ContentResolver
+ */
 public class NotesProvider extends ContentProvider {
     private static final UriMatcher mMatcher;
 
@@ -130,6 +143,11 @@ public class NotesProvider extends ContentProvider {
                     return null;
                 }
 
+                /*
+                 * 两种搜索入口共用正文查询，% 使关键字可匹配正文任意位置。
+                 * 关键字通过占位符绑定，避免直接拼入 SQL；
+                 * 输入自身的 % 和 _ 仍具有 LIKE 通配符语义。
+                 */
                 try {
                     searchString = String.format("%%%s%%", searchString);
                     c = db.rawQuery(NOTES_SNIPPET_SEARCH_QUERY,
@@ -142,6 +160,7 @@ public class NotesProvider extends ContentProvider {
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
         if (c != null) {
+            // 登记结果的观察 Uri；刷新还需写操作通知与调用方共同完成。
             c.setNotificationUri(getContext().getContentResolver(), uri);
         }
         return c;
@@ -267,6 +286,14 @@ public class NotesProvider extends ContentProvider {
         return count;
     }
 
+    /**
+     * 将附加筛选条件接在已有 ID 条件之后。
+     * <p>括号保持附加条件中的 AND、OR 优先级。
+     * 本方法只拼接条件结构，不替换 selectionArgs 占位符。</p>
+     *
+     * @param selection 调用方提供的附加条件，可为 null 或空串
+     * @return 无附加条件时为空串，否则为带 AND 与括号的条件
+     */
     private String parseSelection(String selection) {
         return (!TextUtils.isEmpty(selection) ? " AND (" + selection + ')' : "");
     }

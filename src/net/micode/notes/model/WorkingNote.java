@@ -32,6 +32,18 @@ import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.tool.ResourceParser.NoteBgResources;
 
 
+/**
+ * 保存一次便签编辑会话的内存状态。
+ * <p>本类直接继承 Object，不显式实现接口。
+ * 它持有 Note，管理正文、目录、背景、提醒及小部件状态。
+ * createEmptyNote() 创建新会话，load() 读取已有便签，
+ * saveNote() 检查保存条件后调用 Note 完成数据同步。
+ * 设置变化通过 NoteSettingChangedListener 通知界面。
+ * </p>
+ *
+ * @see Note
+ * @see WorkingNote.NoteSettingChangedListener
+ */
 public class WorkingNote {
     // Note for the working note
     private Note mNote;
@@ -174,6 +186,17 @@ public class WorkingNote {
         }
     }
 
+    /**
+     * 创建并配置尚未分配数据库记录 ID 的便签编辑会话。
+     * <p>此方法只设置内存状态和待保存字段，不立即写入数据库。</p>
+     *
+     * @param context 用于后续数据访问及资源读取的上下文
+     * @param folderId 新便签所属目录的 ID
+     * @param widgetId 关联的小部件 ID，无关联时使用平台无效 ID
+     * @param widgetType 小部件类型，无关联时使用工程定义的无效类型
+     * @param defaultBgColorId 背景颜色索引，不是 drawable 资源 ID
+     * @return 已设置目录、背景和小部件信息的编辑会话
+     */
     public static WorkingNote createEmptyNote(Context context, long folderId, int widgetId,
             int widgetType, int defaultBgColorId) {
         WorkingNote note = new WorkingNote(context, folderId);
@@ -189,6 +212,10 @@ public class WorkingNote {
 
     public synchronized boolean saveNote() {
         if (isWorthSaving()) {
+            /*
+             * 新会话先取得 note 表记录的 ID，再用该 ID 保存关联数据。
+             * 若创建返回 0，立即结束，避免把正文关联到无效记录。
+             */
             if (!existInDatabase()) {
                 if ((mNoteId = Note.getNewNoteId(mContext, mFolderId)) == 0) {
                     Log.e(TAG, "Create new note fail with id:" + mNoteId);
@@ -213,9 +240,17 @@ public class WorkingNote {
     }
 
     public boolean existInDatabase() {
+        // 按内存 ID 的约定判断记录状态，不在此处重新查询数据库。
         return mNoteId > 0;
     }
 
+    /**
+     * 判断当前编辑状态是否需要进入保存流程。
+     * <p>已删除的会话、正文为空的新便签及未修改的已有便签
+     * 均不需要保存。空白字符串不在空正文判断范围内。</p>
+     *
+     * @return 满足保存条件时为 true；应跳过保存时为 false
+     */
     private boolean isWorthSaving() {
         if (mIsDeleted || (!existInDatabase() && TextUtils.isEmpty(mContent))
                 || (existInDatabase() && !mNote.isLocalModified())) {
@@ -284,6 +319,7 @@ public class WorkingNote {
     public void setWorkingText(String text) {
         if (!TextUtils.equals(mContent, text)) {
             mContent = text;
+            // 将正文变化记录到 Note 的待保存字段，留给后续保存流程处理。
             mNote.setTextData(DataColumns.CONTENT, mContent);
         }
     }
