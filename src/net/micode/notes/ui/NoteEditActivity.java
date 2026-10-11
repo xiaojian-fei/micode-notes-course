@@ -180,6 +180,16 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
     private boolean initActivityState(Intent intent) {
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            // Submitted search uses the existing list; selecting a suggestion
+            // still follows ACTION_VIEW and the editor's literal highlighter.
+            Intent results = new Intent(this, NotesListActivity.class);
+            results.setAction(Intent.ACTION_SEARCH);
+            results.putExtra(SearchManager.QUERY, intent.getStringExtra(SearchManager.QUERY));
+            results.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(results);
+            return false;
+        }
         /**
          * If the user specified the {@link Intent#ACTION_VIEW} but not provided with id,
          * then jump to the NotesListActivity
@@ -709,17 +719,19 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
     private Spannable getHighlightQueryResult(String fullText, String userQuery) {
-        SpannableString spannable = new SpannableString(fullText == null ? "" : fullText);
+        String text = fullText == null ? "" : fullText;
+        SpannableString spannable = new SpannableString(text);
         if (!TextUtils.isEmpty(userQuery)) {
-            mPattern = Pattern.compile(userQuery);
-            Matcher m = mPattern.matcher(fullText);
-            int start = 0;
-            while (m.find(start)) {
+            // Search keywords are literal text, not a regular expression.
+            // Matcher.find() advances even for a zero-length match; quoting also
+            // ensures every nonempty keyword consumes characters.
+            mPattern = Pattern.compile(Pattern.quote(userQuery));
+            Matcher m = mPattern.matcher(text);
+            while (m.find()) {
                 spannable.setSpan(
                         new BackgroundColorSpan(this.getResources().getColor(
                                 R.color.user_query_highlight)), m.start(), m.end(),
                         Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-                start = m.end();
             }
         }
         return spannable;

@@ -19,6 +19,7 @@ package net.micode.notes.ui;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.SearchManager;
 import android.appwidget.AppWidgetManager;
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
@@ -114,6 +115,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     private TextView mTitleBar;
 
     private long mCurrentFolderId;
+    private String mSearchQuery;
 
     private ContentResolver mContentResolver;
 
@@ -140,6 +142,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         super.onCreate(savedInstanceState);
         setContentView(R.layout.note_list);
         initResources();
+        mSearchQuery = Intent.ACTION_SEARCH.equals(getIntent().getAction())
+                ? getIntent().getStringExtra(SearchManager.QUERY) : null;
 
         /**
          * Insert an introduction when user firstly use this application
@@ -411,10 +415,30 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     private void startAsyncNotesListQuery() {
         String selection = (mCurrentFolderId == Notes.ID_ROOT_FOLDER) ? ROOT_FOLDER_SELECTION
                 : NORMAL_SELECTION;
+        String[] args = new String[] { String.valueOf(mCurrentFolderId) };
+        if (!TextUtils.isEmpty(mSearchQuery)) {
+            selection = NoteColumns.TYPE + "=? AND " + NoteColumns.PARENT_ID + "<>? AND "
+                    + NoteColumns.SNIPPET + " LIKE ? ESCAPE '\\'";
+            // Treat LIKE wildcards as text, consistent with the highlighter.
+            String literal = mSearchQuery.replace("\\", "\\\\").replace("%", "\\%")
+                    .replace("_", "\\_");
+            args = new String[] { String.valueOf(Notes.TYPE_NOTE),
+                    String.valueOf(Notes.ID_TRASH_FOLER), "%" + literal + "%" };
+        }
         mBackgroundQueryHandler.startQuery(FOLDER_NOTE_LIST_QUERY_TOKEN, null,
-                Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, new String[] {
-                    String.valueOf(mCurrentFolderId)
-                }, NoteColumns.TYPE + " DESC," + NoteColumns.MODIFIED_DATE + " DESC");
+                Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, args,
+                NoteColumns.TYPE + " DESC," + NoteColumns.MODIFIED_DATE + " DESC");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            mSearchQuery = intent.getStringExtra(SearchManager.QUERY);
+            startAsyncNotesListQuery();
+            Toast.makeText(this, "搜索结果：" + mSearchQuery + "（返回键清除）", Toast.LENGTH_LONG).show();
+        }
     }
 
     private final class BackgroundQueryHandler extends AsyncQueryHandler {
@@ -666,6 +690,11 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     @Override
     public void onBackPressed() {
+        if (mSearchQuery != null) {
+            mSearchQuery = null;
+            startAsyncNotesListQuery();
+            return;
+        }
         switch (mState) {
             case SUB_FOLDER:
                 mCurrentFolderId = Notes.ID_ROOT_FOLDER;

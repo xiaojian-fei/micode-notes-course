@@ -31,6 +31,7 @@ android {
         targetSdk 22
         versionCode 1
         versionName '0.1'
+        testInstrumentationRunner 'android.test.InstrumentationTestRunner'
     }
 
     sourceSets {
@@ -39,6 +40,8 @@ android {
             java.srcDirs = ['src']
             res.srcDirs = ['res']
         }
+        androidTest.java.srcDirs = ['tests']
+        androidTest.manifest.srcFile 'tests/AndroidManifest.xml'
     }
 
     compileOptions {
@@ -47,6 +50,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Optional local debug key permits data-preserving updates of an
+            // existing course emulator. No key material is checked into Git.
+            if (project.hasProperty('notesSigningStore')) {
+                signingConfigs.debug.storeFile = file(project.property('notesSigningStore'))
+            }
+        }
         release {
             minifyEnabled false
         }
@@ -59,6 +69,8 @@ android {
 }
 
 dependencies {
+    androidTestImplementation files("${sdkDirPath}/platforms/android-34/optional/android.test.runner.jar",
+            "${sdkDirPath}/platforms/android-34/optional/android.test.base.jar")
     // org.apache.http 自 API 23 起从 Android SDK 中移除，而原工程
     // net.micode.notes.gtask.remote.GTaskClient 仍在使用它，因此编译期引入
     // SDK 自带的 legacy 库；运行期由系统的 org.apache.http.legacy 共享库提供
