@@ -104,14 +104,13 @@ public class DateTimePicker extends FrameLayout {
                     isDateChanged = true;
                 }
             }
-            int newHour = mHourSpinner.getValue() % HOURS_IN_HALF_DAY + (mIsAm ? 0 : HOURS_IN_HALF_DAY);
+            int newHour = mIs24HourView ? mHourSpinner.getValue()
+                    : mHourSpinner.getValue() % HOURS_IN_HALF_DAY + (mIsAm ? 0 : HOURS_IN_HALF_DAY);
             mDate.set(Calendar.HOUR_OF_DAY, newHour);
-            onDateTimeChanged();
             if (isDateChanged) {
-                setCurrentYear(cal.get(Calendar.YEAR));
-                setCurrentMonth(cal.get(Calendar.MONTH));
-                setCurrentDay(cal.get(Calendar.DAY_OF_MONTH));
-            }
+                setCurrentDate(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH),
+                        cal.get(Calendar.DAY_OF_MONTH), newHour, getCurrentMinute());
+            } else onDateTimeChanged();
         }
     };
 
@@ -264,11 +263,17 @@ public class DateTimePicker extends FrameLayout {
      */
     public void setCurrentDate(int year, int month,
             int dayOfMonth, int hourOfDay, int minute) {
-        setCurrentYear(year);
-        setCurrentMonth(month);
-        setCurrentDay(dayOfMonth);
-        setCurrentHour(hourOfDay);
-        setCurrentMinute(minute);
+        // Commit all date fields before reading Calendar. Intermediate states
+        // such as April 31 must never normalize the requested date into May.
+        mDate.clear();
+        mDate.set(year, month, dayOfMonth, hourOfDay, minute, 0);
+        mIsAm = hourOfDay < HOURS_IN_HALF_DAY;
+        updateDateControl();
+        updateHourControl();
+        mHourSpinner.setValue(getCurrentHour());
+        mMinuteSpinner.setValue(minute);
+        updateAmPmControl();
+        onDateTimeChanged();
     }
 
     /**
@@ -367,9 +372,6 @@ public class DateTimePicker extends FrameLayout {
      * @param hourOfDay
      */
     public void setCurrentHour(int hourOfDay) {
-        if (!mInitialising && hourOfDay == getCurrentHourOfDay()) {
-            return;
-        }
         mDate.set(Calendar.HOUR_OF_DAY, hourOfDay);
         if (!mIs24HourView) {
             if (hourOfDay >= HOURS_IN_HALF_DAY) {

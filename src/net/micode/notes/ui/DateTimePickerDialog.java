@@ -47,11 +47,8 @@ public class DateTimePickerDialog extends AlertDialog implements OnClickListener
         mDateTimePicker.setOnDateTimeChangedListener(new OnDateTimeChangedListener() {
             public void onDateTimeChanged(DateTimePicker view, int year, int month,
                     int dayOfMonth, int hourOfDay, int minute) {
-                mDate.set(Calendar.YEAR, year);
-                mDate.set(Calendar.MONTH, month);
-                mDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                mDate.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                mDate.set(Calendar.MINUTE, minute);
+                mDate.clear();
+                mDate.set(year, month, dayOfMonth, hourOfDay, minute, 0);
                 updateTitle(mDate.getTimeInMillis());
             }
         });
@@ -77,7 +74,7 @@ public class DateTimePickerDialog extends AlertDialog implements OnClickListener
             DateUtils.FORMAT_SHOW_YEAR |
             DateUtils.FORMAT_SHOW_DATE |
             DateUtils.FORMAT_SHOW_TIME;
-        flag |= mIs24HourView ? DateUtils.FORMAT_24HOUR : DateUtils.FORMAT_24HOUR;
+        flag |= mIs24HourView ? DateUtils.FORMAT_24HOUR : DateUtils.FORMAT_12HOUR;
         setTitle(DateUtils.formatDateTime(this.getContext(), date, flag));
     }
 
