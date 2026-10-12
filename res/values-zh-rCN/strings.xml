@@ -138,4 +138,7 @@
     <string name="filter_clear">清除筛选</string>
     <string name="filter_active">筛选结果 · 返回键清除</string>
     <string name="filter_empty">没有符合条件的便签</string>
+    <string name="content_stats">内容统计</string>
+    <string name="stats_text">字符数（Unicode码点）：%1$d\n正文逻辑行数：%2$d</string>
+    <string name="stats_checklist">有效清单项：%1$d\n已完成：%2$d\n完成率：%3$.1f%%</string>
 </resources>

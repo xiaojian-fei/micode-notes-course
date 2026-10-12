@@ -58,6 +58,7 @@ import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.model.WorkingNote;
 import net.micode.notes.model.WorkingNote.NoteSettingChangedListener;
 import net.micode.notes.tool.DataUtils;
+import net.micode.notes.tool.ContentStats;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.tool.ResourceParser.TextAppearanceResources;
 import net.micode.notes.ui.DateTimePickerDialog.OnDateTimeSetListener;
@@ -66,6 +67,8 @@ import net.micode.notes.widget.NoteWidgetProvider_2x;
 import net.micode.notes.widget.NoteWidgetProvider_4x;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -521,6 +524,9 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_content_stats:
+                showContentStatistics();
+                break;
             case R.id.menu_pin_note:
                 getWorkingText();
                 if (TextUtils.isEmpty(mWorkingNote.getContent())) {
@@ -827,6 +833,28 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             mWorkingNote.setWorkingText(mNoteEditor.getText().toString());
         }
         return hasChecked;
+    }
+
+    private void showContentStatistics() {
+        ContentStats.Result result;
+        boolean checklist=mWorkingNote.getCheckListMode()==TextNote.MODE_CHECK_LIST;
+        if(checklist) {
+            List<String> contents=new ArrayList<String>();
+            List<Boolean> checked=new ArrayList<Boolean>();
+            for(int i=0;i<mEditTextList.getChildCount();i++) {
+                View item=mEditTextList.getChildAt(i);
+                contents.add(((EditText)item.findViewById(R.id.et_edit_text)).getText().toString());
+                checked.add(((CheckBox)item.findViewById(R.id.cb_edit_item)).isChecked());
+            }
+            result=ContentStats.calculateChecklist(contents,checked);
+        } else result=ContentStats.calculate(mNoteEditor.getText().toString());
+        // Read the current controls directly: no serialization, model mutation
+        // or save operation is needed to include pending editor changes.
+        String message=getString(R.string.stats_text,result.characters,result.lines);
+        if(checklist)message+="\n\n"+getString(R.string.stats_checklist,
+                result.items,result.completed,result.completionPercent());
+        new AlertDialog.Builder(this).setTitle(R.string.content_stats).setMessage(message)
+                .setPositiveButton(android.R.string.ok,null).show();
     }
 
     private boolean saveNote() {

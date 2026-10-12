@@ -147,4 +147,7 @@
     <string name="filter_clear">Clear filters</string>
     <string name="filter_active">Filter active · Back clears</string>
     <string name="filter_empty">No matching notes</string>
+    <string name="content_stats">Content statistics</string>
+    <string name="stats_text">Characters (Unicode code points): %1$d\nLogical lines: %2$d</string>
+    <string name="stats_checklist">Valid checklist items: %1$d\nCompleted: %2$d\nCompletion: %3$.1f%%</string>
 </resources>
