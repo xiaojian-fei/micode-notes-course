@@ -502,6 +502,9 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         } else {
             getMenuInflater().inflate(R.menu.note_edit, menu);
         }
+        MenuItem pinItem = menu.findItem(R.id.menu_pin_note);
+        if (pinItem != null) pinItem.setTitle(mWorkingNote.isPinned()
+                ? R.string.menu_unpin_note : R.string.menu_pin_note);
         if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST) {
             menu.findItem(R.id.menu_list_mode).setTitle(R.string.menu_normal_mode);
         } else {
@@ -518,6 +521,15 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_pin_note:
+                getWorkingText();
+                if (TextUtils.isEmpty(mWorkingNote.getContent())) {
+                    Toast.makeText(this, R.string.pin_empty_note, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                mWorkingNote.setPinned(!mWorkingNote.isPinned());
+                invalidateOptionsMenu();
+                break;
             case R.id.menu_new_note:
                 createNewNote();
                 break;

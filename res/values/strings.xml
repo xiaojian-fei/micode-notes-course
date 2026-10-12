@@ -132,4 +132,8 @@
         <item quantity="other"><xliff:g id="number" example="15">%1$s</xliff:g> results for \"<xliff:g id="search" example="???">%2$s</xliff:g>\"</item>
     </plurals>
 
+    <string name="menu_pin_note">Pin note</string>
+    <string name="menu_unpin_note">Unpin note</string>
+    <string name="pinned_note_prefix">↑ PIN · %s</string>
+    <string name="pin_empty_note">Enter note content before pinning.</string>
 </resources>

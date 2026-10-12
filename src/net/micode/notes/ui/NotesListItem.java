@@ -85,7 +85,9 @@ public class NotesListItem extends LinearLayout {
                                 data.getNotesCount()));
                 mAlert.setVisibility(View.GONE);
             } else {
-                mTitle.setText(DataUtils.getFormattedSnippet(data.getSnippet()));
+                String title = DataUtils.getFormattedSnippet(data.getSnippet());
+                mTitle.setText(data.isPinned()
+                        ? context.getString(R.string.pinned_note_prefix, title) : title);
                 if (data.hasAlert()) {
                     mAlert.setImageResource(R.drawable.clock);
                     mAlert.setVisibility(View.VISIBLE);

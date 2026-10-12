@@ -62,6 +62,8 @@ public class Notes {
     public static final Uri CONTENT_DATA_URI = Uri.parse("content://" + AUTHORITY + "/data");
 
     public interface NoteColumns {
+        /** Local note pin state: 0 normal, 1 pinned. */
+        public static final String PINNED = "pinned";
         /**
          * The unique ID for a row
          * <P> Type: INTEGER (long) </P>

@@ -123,4 +123,8 @@
         <item quantity="other"><xliff:g id="NUMBER">%1$s</xliff:g> 条符合“<xliff:g id="SEARCH">%2$s</xliff:g>”的搜索结果</item>
     </plurals>
 
+    <string name="menu_pin_note">置顶便签</string>
+    <string name="menu_unpin_note">取消置顶</string>
+    <string name="pinned_note_prefix">↑ 置顶 · %s</string>
+    <string name="pin_empty_note">请先输入便签正文。</string>
 </resources>

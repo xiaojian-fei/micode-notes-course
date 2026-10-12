@@ -30,7 +30,7 @@ import net.micode.notes.data.Notes.NoteColumns;
 public class NotesDatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "note.db";
 
-    private static final int DB_VERSION = 4;
+    private static final int DB_VERSION = 5;
 
     public interface TABLE {
         public static final String NOTE = "note";
@@ -60,7 +60,8 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
             NoteColumns.LOCAL_MODIFIED + " INTEGER NOT NULL DEFAULT 0," +
             NoteColumns.ORIGIN_PARENT_ID + " INTEGER NOT NULL DEFAULT 0," +
             NoteColumns.GTASK_ID + " TEXT NOT NULL DEFAULT ''," +
-            NoteColumns.VERSION + " INTEGER NOT NULL DEFAULT 0" +
+            NoteColumns.VERSION + " INTEGER NOT NULL DEFAULT 0," +
+            NoteColumns.PINNED + " INTEGER NOT NULL DEFAULT 0" +
         ")";
 
     private static final String CREATE_DATA_TABLE_SQL =
@@ -327,6 +328,13 @@ public class NotesDatabaseHelper extends SQLiteOpenHelper {
             reCreateDataTableTriggers(db);
         }
 
+        if (oldVersion == 4) {
+            // SQLiteOpenHelper runs upgrades transactionally; existing rows,
+            // relationships and triggers are retained, with pin defaulting to 0.
+            db.execSQL("ALTER TABLE " + TABLE.NOTE + " ADD COLUMN "
+                    + NoteColumns.PINNED + " INTEGER NOT NULL DEFAULT 0");
+            oldVersion++;
+        }
         if (oldVersion != newVersion) {
             throw new IllegalStateException("Upgrade notes database to version " + newVersion
                     + "fails");

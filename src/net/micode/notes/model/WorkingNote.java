@@ -65,6 +65,7 @@ public class WorkingNote {
     private int mWidgetType;
 
     private long mFolderId;
+    private boolean mPinned;
 
     private Context mContext;
 
@@ -90,7 +91,8 @@ public class WorkingNote {
             NoteColumns.BG_COLOR_ID,
             NoteColumns.WIDGET_ID,
             NoteColumns.WIDGET_TYPE,
-            NoteColumns.MODIFIED_DATE
+            NoteColumns.MODIFIED_DATE,
+            NoteColumns.PINNED
     };
 
     private static final int DATA_ID_COLUMN = 0;
@@ -149,6 +151,7 @@ public class WorkingNote {
                 mWidgetType = cursor.getInt(NOTE_WIDGET_TYPE_COLUMN);
                 mAlertDate = cursor.getLong(NOTE_ALERTED_DATE_COLUMN);
                 mModifiedDate = cursor.getLong(NOTE_MODIFIED_DATE_COLUMN);
+                mPinned = cursor.getInt(6) != 0;
             }
             cursor.close();
         } else {
@@ -401,4 +404,14 @@ public class WorkingNote {
          */
         void onCheckListModeChanged(int oldMode, int newMode);
     }
+
+    public boolean isPinned() { return mPinned; }
+
+    public void setPinned(boolean pinned) {
+        if (mPinned != pinned) {
+            mPinned = pinned;
+            mNote.setNoteValue(NoteColumns.PINNED, pinned ? "1" : "0");
+        }
+    }
+
 }
