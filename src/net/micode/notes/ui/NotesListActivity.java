@@ -68,6 +68,7 @@ import net.micode.notes.gtask.remote.GTaskSyncService;
 import net.micode.notes.model.WorkingNote;
 import net.micode.notes.tool.BackupUtils;
 import net.micode.notes.tool.DataUtils;
+import net.micode.notes.tool.FolderNamePolicy;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NotesListAdapter.AppWidgetAttribute;
 import net.micode.notes.widget.NoteWidgetProvider_2x;
@@ -633,7 +634,12 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         positive.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 hideSoftInput(etName);
-                String name = etName.getText().toString();
+                String name = FolderNamePolicy.normalize(etName.getText().toString());
+                if (!FolderNamePolicy.isValid(name)) {
+                    etName.setError("文件夹名称不能全为空白");
+                    positive.setEnabled(false);
+                    return;
+                }
                 if (DataUtils.checkVisibleFolderName(mContentResolver, name)) {
                     Toast.makeText(NotesListActivity.this, getString(R.string.folder_exist, name),
                             Toast.LENGTH_LONG).show();
@@ -661,7 +667,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             }
         });
 
-        if (TextUtils.isEmpty(etName.getText())) {
+        if (!FolderNamePolicy.isValid(etName.getText().toString())) {
             positive.setEnabled(false);
         }
         /**
@@ -674,7 +680,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             }
 
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (TextUtils.isEmpty(etName.getText())) {
+                if (!FolderNamePolicy.isValid(etName.getText().toString())) {
                     positive.setEnabled(false);
                 } else {
                     positive.setEnabled(true);
@@ -975,7 +981,28 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                     Log.e(TAG, "startActionMode fails");
                 }
             } else if (mFocusNoteDataItem.getType() == Notes.TYPE_FOLDER) {
-                mNotesListView.setOnCreateContextMenuListener(mFolderOnCreateContextMenuListener);
+                // A normal dialog keeps legacy folder actions usable on newer
+                // Android versions whose floating context popup can be clipped.
+                new AlertDialog.Builder(this).setTitle(mFocusNoteDataItem.getSnippet())
+                        .setItems(new String[] {getString(R.string.menu_folder_view),
+                            getString(R.string.menu_folder_change_name),
+                            getString(R.string.menu_folder_delete)},
+                            new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (which == 0) openFolder(mFocusNoteDataItem);
+                            else if (which == 1) showCreateOrModifyFolderDialog(false);
+                            else new AlertDialog.Builder(NotesListActivity.this)
+                                    .setTitle(R.string.alert_title_delete)
+                                    .setMessage(R.string.alert_message_delete_folder)
+                                    .setPositiveButton(android.R.string.ok,
+                                            new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface confirm, int button) {
+                                            deleteFolder(mFocusNoteDataItem.getId());
+                                        }
+                                    }).setNegativeButton(android.R.string.cancel, null).show();
+                        }
+                    }).show();
+                return true;
             }
         }
         return false;

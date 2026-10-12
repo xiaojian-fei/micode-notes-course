@@ -182,17 +182,23 @@ public class DataUtils {
     }
 
     public static boolean checkVisibleFolderName(ContentResolver resolver, String name) {
-        Cursor cursor = resolver.query(Notes.CONTENT_NOTE_URI, null,
-                NoteColumns.TYPE + "=" + Notes.TYPE_FOLDER +
-                " AND " + NoteColumns.PARENT_ID + "<>" + Notes.ID_TRASH_FOLER +
-                " AND " + NoteColumns.SNIPPET + "=?",
-                new String[] { name }, null);
+        Cursor cursor = resolver.query(Notes.CONTENT_NOTE_URI,
+                new String[] { NoteColumns.SNIPPET },
+                NoteColumns.TYPE + "=? AND " + NoteColumns.PARENT_ID + "<>?",
+                new String[] { String.valueOf(Notes.TYPE_FOLDER),
+                    String.valueOf(Notes.ID_TRASH_FOLER) }, null);
         boolean exist = false;
         if(cursor != null) {
-            if(cursor.getCount() > 0) {
-                exist = true;
-            }
-            cursor.close();
+            try {
+                // Compare normalized historical names without rewriting them.
+                while (cursor.moveToNext()) {
+                    if (FolderNamePolicy.normalize(name).equals(
+                            FolderNamePolicy.normalize(cursor.getString(0)))) {
+                        exist = true;
+                        break;
+                    }
+                }
+            } finally { cursor.close(); }
         }
         return exist;
     }
