@@ -20,4 +20,12 @@
         <item>短信</item>
         <item>邮件</item>
     </string-array>
+    <string-array name="filter_colors">
+        <item>全部颜色</item>
+        <item>黄色</item>
+        <item>蓝色</item>
+        <item>白色</item>
+        <item>绿色</item>
+        <item>红色</item>
+    </string-array>
 </resources>

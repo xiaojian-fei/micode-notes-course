@@ -1,0 +1,6 @@
+<resources>
+    <item type="id" name="filter_folder" />
+    <item type="id" name="filter_color" />
+    <item type="id" name="filter_start" />
+    <item type="id" name="filter_end" />
+</resources>

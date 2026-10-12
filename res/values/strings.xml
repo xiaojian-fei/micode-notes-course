@@ -136,4 +136,15 @@
     <string name="menu_unpin_note">Unpin note</string>
     <string name="pinned_note_prefix">↑ PIN · %s</string>
     <string name="pin_empty_note">Enter note content before pinning.</string>
+    <string name="filter_notes">Filter notes</string>
+    <string name="filter_all_folders">All folders</string>
+    <string name="filter_root_folder">Root folder</string>
+    <string name="filter_folder">Folder</string>
+    <string name="filter_color">Color</string>
+    <string name="filter_start_date">Modified from (inclusive)</string>
+    <string name="filter_end_date">Modified through (inclusive)</string>
+    <string name="filter_apply">Apply</string>
+    <string name="filter_clear">Clear filters</string>
+    <string name="filter_active">Filter active · Back clears</string>
+    <string name="filter_empty">No matching notes</string>
 </resources>

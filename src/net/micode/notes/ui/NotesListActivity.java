@@ -69,6 +69,7 @@ import net.micode.notes.model.WorkingNote;
 import net.micode.notes.tool.BackupUtils;
 import net.micode.notes.tool.DataUtils;
 import net.micode.notes.tool.FolderNamePolicy;
+import net.micode.notes.tool.NoteFilter;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NotesListAdapter.AppWidgetAttribute;
 import net.micode.notes.widget.NoteWidgetProvider_2x;
@@ -117,6 +118,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     private long mCurrentFolderId;
     private String mSearchQuery;
+    private NoteFilter mFilter;
 
     private ContentResolver mContentResolver;
 
@@ -145,6 +147,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         initResources();
         mSearchQuery = Intent.ACTION_SEARCH.equals(getIntent().getAction())
                 ? getIntent().getStringExtra(SearchManager.QUERY) : null;
+        if (savedInstanceState != null) mFilter=(NoteFilter)savedInstanceState.getSerializable("note_filter");
+        updateFilterTitle();
 
         /**
          * Insert an introduction when user firstly use this application
@@ -219,6 +223,12 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         mBackgroundQueryHandler = new BackgroundQueryHandler(this.getContentResolver());
         mCurrentFolderId = Notes.ID_ROOT_FOLDER;
         mNotesListView = (ListView) findViewById(R.id.notes_list);
+        TextView emptyState=new TextView(this);
+        emptyState.setText(R.string.filter_empty);emptyState.setGravity(android.view.Gravity.CENTER);
+        ((android.widget.LinearLayout)mNotesListView.getParent()).addView(emptyState,
+                new android.widget.LinearLayout.LayoutParams(-1,0,1));
+        mNotesListView.setEmptyView(emptyState);
+
         mNotesListView.addFooterView(LayoutInflater.from(this).inflate(R.layout.note_list_footer, null),
                 null, false);
         mNotesListView.setOnItemClickListener(new OnListItemClickListener());
@@ -417,6 +427,9 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         String selection = (mCurrentFolderId == Notes.ID_ROOT_FOLDER) ? ROOT_FOLDER_SELECTION
                 : NORMAL_SELECTION;
         String[] args = new String[] { String.valueOf(mCurrentFolderId) };
+        if (mFilter != null) {
+            selection=mFilter.getSelection();args=mFilter.getSelectionArgs();
+        }
         if (!TextUtils.isEmpty(mSearchQuery)) {
             selection = NoteColumns.TYPE + "=? AND " + NoteColumns.PARENT_ID + "<>? AND "
                     + NoteColumns.SNIPPET + " LIKE ? ESCAPE '\\'";
@@ -437,7 +450,9 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         super.onNewIntent(intent);
         setIntent(intent);
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            mFilter=null;
             mSearchQuery = intent.getStringExtra(SearchManager.QUERY);
+            updateFilterTitle();
             startAsyncNotesListQuery();
             Toast.makeText(this, "搜索结果：" + mSearchQuery + "（返回键清除）", Toast.LENGTH_LONG).show();
         }
@@ -697,6 +712,9 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     @Override
     public void onBackPressed() {
+        if (mFilter != null) {
+            mFilter=null;startAsyncNotesListQuery();updateFilterTitle();return;
+        }
         if (mSearchQuery != null) {
             mSearchQuery = null;
             startAsyncNotesListQuery();
@@ -817,6 +835,13 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_filter_notes:
+                new NoteFilterDialog(this,mFilter,new NoteFilterDialog.OnApplyListener(){
+                    public void onApply(NoteFilter filter){
+                        mFilter=filter;mSearchQuery=null;updateFilterTitle();startAsyncNotesListQuery();
+                    }
+                }).show();
+                break;
             case R.id.menu_new_folder: {
                 showCreateOrModifyFolderDialog(true);
                 break;
@@ -1007,5 +1032,17 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             }
         }
         return false;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);state.putSerializable("note_filter",mFilter);
+    }
+
+    private void updateFilterTitle() {
+        if(mFilter!=null){mTitleBar.setText(R.string.filter_active);mTitleBar.setVisibility(View.VISIBLE);}
+        else if(mState==ListEditState.NOTE_LIST)mTitleBar.setVisibility(View.GONE);
+        else mTitleBar.setText(mState==ListEditState.CALL_RECORD_FOLDER
+                ?getString(R.string.call_record_folder_name):DataUtils.getSnippetById(mContentResolver,mCurrentFolderId));
     }
 }
