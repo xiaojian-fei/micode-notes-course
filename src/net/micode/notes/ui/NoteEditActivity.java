@@ -53,6 +53,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import net.micode.notes.R;
+import net.micode.notes.tool.SearchQuery;
 import net.micode.notes.data.Notes;
 import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.model.WorkingNote;
@@ -754,8 +755,9 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             // Search keywords are literal text, not a regular expression.
             // Matcher.find() advances even for a zero-length match; quoting also
             // ensures every nonempty keyword consumes characters.
-            mPattern = Pattern.compile(Pattern.quote(userQuery));
-            Matcher m = mPattern.matcher(text);
+            // Match SQLite LIKE's ASCII case rule without changing Unicode case semantics.
+            mPattern = Pattern.compile(Pattern.quote(SearchQuery.foldAscii(userQuery)));
+            Matcher m = mPattern.matcher(SearchQuery.foldAscii(text));
             while (m.find()) {
                 spannable.setSpan(
                         new BackgroundColorSpan(this.getResources().getColor(

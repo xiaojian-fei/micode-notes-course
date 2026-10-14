@@ -30,6 +30,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import net.micode.notes.R;
+import net.micode.notes.tool.SearchQuery;
 import net.micode.notes.data.Notes.DataColumns;
 import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.data.NotesDatabaseHelper.TABLE;
@@ -88,7 +89,7 @@ public class NotesProvider extends ContentProvider {
 
     private static String NOTES_SNIPPET_SEARCH_QUERY = "SELECT " + NOTES_SEARCH_PROJECTION
         + " FROM " + TABLE.NOTE
-        + " WHERE " + NoteColumns.SNIPPET + " LIKE ?"
+        + " WHERE " + NoteColumns.SNIPPET + " LIKE ? ESCAPE '\\'"
         + " AND " + NoteColumns.PARENT_ID + "<>" + Notes.ID_TRASH_FOLER
         + " AND " + NoteColumns.TYPE + "=" + Notes.TYPE_NOTE;
 
@@ -146,10 +147,10 @@ public class NotesProvider extends ContentProvider {
                 /*
                  * 两种搜索入口共用正文查询，% 使关键字可匹配正文任意位置。
                  * 关键字通过占位符绑定，避免直接拼入 SQL；
-                 * 输入自身的 % 和 _ 仍具有 LIKE 通配符语义。
+                 * 输入自身的 %、_ 与反斜杠按普通字符匹配，与列表搜索一致。
                  */
                 try {
-                    searchString = String.format("%%%s%%", searchString);
+                    searchString = SearchQuery.toLikeArgument(searchString);
                     c = db.rawQuery(NOTES_SNIPPET_SEARCH_QUERY,
                             new String[] { searchString });
                 } catch (IllegalStateException ex) {

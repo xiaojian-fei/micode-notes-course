@@ -88,8 +88,9 @@ public class MaintenanceTests extends InstrumentationTestCase {
                 {"测试测试", "测试"}, {"[ ( \\ a* ^ $", "["},
                 {"[ ( \\ a* ^ $", "("}, {"[ ( \\ a* ^ $", "\\"},
                 {"[ ( \\ a* ^ $", "a*"}, {"[ ( \\ a* ^ $", "^"},
-                {"[ ( \\ a* ^ $", "$"}, {"😀😀", "😀"}};
-            final int[] expected = {0,0,0,0,0,3,2,1,1,1,1,1,1,2};
+                {"[ ( \\ a* ^ $", "$"}, {"😀😀", "😀"},
+                {"ALPHA alpha ALPHA", "alpha"}, {"æ Æ æ", "æ"}, {"% _ \\ %_\\", "%_\\"}};
+            final int[] expected = {0,0,0,0,0,3,2,1,1,1,1,1,1,2,3,2,1};
             final Throwable[] error = new Throwable[1];
             getInstrumentation().runOnMainSync(new Runnable() {
                 public void run() {

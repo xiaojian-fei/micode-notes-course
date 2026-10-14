@@ -62,6 +62,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import net.micode.notes.R;
+import net.micode.notes.tool.SearchQuery;
 import net.micode.notes.data.Notes;
 import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.gtask.remote.GTaskSyncService;
@@ -434,10 +435,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             selection = NoteColumns.TYPE + "=? AND " + NoteColumns.PARENT_ID + "<>? AND "
                     + NoteColumns.SNIPPET + " LIKE ? ESCAPE '\\'";
             // Treat LIKE wildcards as text, consistent with the highlighter.
-            String literal = mSearchQuery.replace("\\", "\\\\").replace("%", "\\%")
-                    .replace("_", "\\_");
             args = new String[] { String.valueOf(Notes.TYPE_NOTE),
-                    String.valueOf(Notes.ID_TRASH_FOLER), "%" + literal + "%" };
+                    String.valueOf(Notes.ID_TRASH_FOLER), SearchQuery.toLikeArgument(mSearchQuery) };
         }
         mBackgroundQueryHandler.startQuery(FOLDER_NOTE_LIST_QUERY_TOKEN, null,
                 Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, args,
