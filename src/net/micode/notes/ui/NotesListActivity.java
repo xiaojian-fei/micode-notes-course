@@ -578,6 +578,9 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         Intent intent = new Intent(this, NoteEditActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
         intent.putExtra(Intent.EXTRA_UID, data.getId());
+        if (!TextUtils.isEmpty(mSearchQuery)) {
+            intent.putExtra(SearchManager.USER_QUERY, mSearchQuery);
+        }
         this.startActivityForResult(intent, REQUEST_CODE_OPEN_NODE);
     }
 

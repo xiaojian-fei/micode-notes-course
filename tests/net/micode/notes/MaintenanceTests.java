@@ -15,6 +15,25 @@ import net.micode.notes.ui.DateTimePicker;
 
 /** Actual device component tests complement, and never replace, natural UI tests. */
 public class MaintenanceTests extends InstrumentationTestCase {
+    public void testSearchQueryExtraTypes() throws Exception {
+        Method read = NoteEditActivity.class.getDeclaredMethod("getSearchQuery", Intent.class);
+        read.setAccessible(true);
+        Intent intent = new Intent();
+        assertEquals("", read.invoke(null, intent));
+        intent.putExtra(android.app.SearchManager.USER_QUERY, "abc");
+        assertEquals("abc", read.invoke(null, intent));
+        intent.putExtra(android.app.SearchManager.USER_QUERY,
+                (CharSequence)new android.text.SpannableString("测试"));
+        assertEquals("测试", read.invoke(null, intent));
+        intent.putExtra(android.app.SearchManager.USER_QUERY,
+                (CharSequence)new android.text.SpannableStringBuilder("[ \\ a* ^ $"));
+        assertEquals("[ \\ a* ^ $", read.invoke(null, intent));
+        intent.putExtra(android.app.SearchManager.USER_QUERY, (CharSequence)null);
+        intent.putExtra(android.app.SearchManager.QUERY, "abc");
+        assertEquals("abc", read.invoke(null, intent));
+        intent.putExtra(android.app.SearchManager.USER_QUERY, "primary");
+        assertEquals("primary", read.invoke(null, intent));
+    }
     public void testReminderCalendarBoundaries() throws Throwable {
         final Throwable[] error = new Throwable[1];
         getInstrumentation().runOnMainSync(new Runnable() {

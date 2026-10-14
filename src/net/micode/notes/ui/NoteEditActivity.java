@@ -174,6 +174,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         if (savedInstanceState != null && savedInstanceState.containsKey(Intent.EXTRA_UID)) {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.putExtra(Intent.EXTRA_UID, savedInstanceState.getLong(Intent.EXTRA_UID));
+            intent.putExtra(SearchManager.USER_QUERY,
+                    savedInstanceState.getString(SearchManager.USER_QUERY));
             if (!initActivityState(intent)) {
                 finish();
                 return;
@@ -200,14 +202,13 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         mWorkingNote = null;
         if (TextUtils.equals(Intent.ACTION_VIEW, intent.getAction())) {
             long noteId = intent.getLongExtra(Intent.EXTRA_UID, 0);
-            mUserQuery = "";
+            mUserQuery = getSearchQuery(intent);
 
             /**
              * Starting from the searched result
              */
             if (intent.hasExtra(SearchManager.EXTRA_DATA_KEY)) {
                 noteId = Long.parseLong(intent.getStringExtra(SearchManager.EXTRA_DATA_KEY));
-                mUserQuery = intent.getStringExtra(SearchManager.USER_QUERY);
             }
 
             if (!DataUtils.visibleInNoteDatabase(getContentResolver(), noteId, Notes.TYPE_NOTE)) {
@@ -275,6 +276,15 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         return true;
     }
 
+    /** Android search can supply styled CharSequence extras rather than String. */
+    private static String getSearchQuery(Intent intent) {
+        CharSequence query = intent.getCharSequenceExtra(SearchManager.USER_QUERY);
+        if (TextUtils.isEmpty(query)) {
+            query = intent.getCharSequenceExtra(SearchManager.QUERY);
+        }
+        return query == null ? "" : query.toString();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -334,6 +344,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putString(SearchManager.USER_QUERY, mUserQuery);
         /**
          * For new note without note id, we should firstly save it to
          * generate a id. If the editing note is not worth saving, there
