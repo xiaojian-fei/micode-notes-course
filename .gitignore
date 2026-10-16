@@ -13,3 +13,19 @@ project.properties
 build/
 local.properties
 .vscode/
+
+# Signing material, private test fixtures and local course submissions
+*.jks
+*.keystore
+*.p12
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+*.apk
+*.docx
+*.pdf
+_android_setup/
+private/
+__pycache__/
