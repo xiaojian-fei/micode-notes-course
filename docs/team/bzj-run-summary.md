@@ -138,6 +138,16 @@ OK (10 tests)
 | 合法日期 → Apply | 对话框关闭，列表按条件筛选，与修复前一致 |
 | 回归 | `assembleDebug` 构建成功；5 个测试类 **OK (10 tests)** 全部通过 |
 
+### 截图证据
+
+三张截图均为本机模拟器（API 28 / x86_64）实际运行画面，裁切掉与问题无关的区域后提交。
+
+| 图 | 操作 | 观察点 |
+| --- | --- | --- |
+| ![修复前](screenshots/filter-error-before-wrong-field.jpg) | `Modified from` 填 `2026-13-45`，through 留空，点 Apply | 红色错误图标落在**未填写的 `Modified through`** 上，实际出错的 `Modified from` 无标记 |
+| ![修复后-开始日期](screenshots/filter-error-after-from-field.jpg) | 同上 | 错误图标与 `Invalid calendar date` 正确显示在 **`Modified from`** |
+| ![修复后-区间倒置](screenshots/filter-error-after-range-both.jpg) | from `2026-11-12`、through `2026-11-01`，点 Apply | 两个字段**同时**标记，提示 `Start date exceeds end date` |
+
 ## 8. 已验证与未验证
 
 已验证：
@@ -155,7 +165,14 @@ OK (10 tests)
 
 ## 9. 证据位置
 
-构建日志、安装日志、四张关键截图（构建成功、原版首页、编辑内容、修改后重新打开）及设备信息，
-已按小组要求随个人记录包私下交接，未提交到公开仓库。
+已提交到仓库的证据：
 
-本次修复的两张验证截图（错误提示落在 `Modified from`、起止倒置时双字段标记）与复核截图保留在本地记录中，如有需要可另行提供。
+- `docs/team/screenshots/filter-error-before-wrong-field.jpg`：修复前错误提示标错字段
+- `docs/team/screenshots/filter-error-after-from-field.jpg`：修复后提示落在开始日期
+- `docs/team/screenshots/filter-error-after-range-both.jpg`：修复后区间倒置时双字段标记
+
+按小组要求私下交接、未提交到公开仓库的材料：
+
+- 基线的构建日志、安装日志、四张运行截图（构建成功、原版首页、编辑内容、修改后重新打开）及设备信息，
+  随个人记录包一并交接。
+- 维护版复核过程的其余截图保留在本地记录中，如有需要可另行提供。
