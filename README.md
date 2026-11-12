@@ -27,10 +27,12 @@
 - Android SDK Platform 34、Build Tools 34.0.0、Platform Tools。
 - 应用minSdk 16、targetSdk 22；已有运行记录主要来自Android 9 / API 28的x86_64模拟器。
 
+当前仓库地址为 <https://github.com/xiaojian-fei/micode-notes-course>。
+
 ## 克隆和构建
 
 ```powershell
-git clone https://github.com/CurtainXxxx/micode-notes-course.git
+git clone https://github.com/xiaojian-fei/micode-notes-course.git
 cd micode-notes-course
 ```
 
@@ -38,6 +40,16 @@ cd micode-notes-course
 
 1. 设置 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT`；
 2. 在工程根目录创建不提交到Git的 `local.properties`，内容如 `sdk.dir=C:/Android/Sdk`，替换为实际目录。
+
+启动自己的模拟器。下列 `adb` 命令需要先将**自己 SDK 目录下的 platform-tools** 加入 PATH，可在 PowerShell 按本机 SDK 路径配置。SDK 也可以通过 Android Studio 的 SDK Manager 查看。
+
+```powershell
+# 按上一节先设置 ANDROID_HOME 为本机 SDK 路径。
+$env:Path = (Join-Path $env:ANDROID_HOME 'platform-tools') + [IO.Path]::PathSeparator + $env:Path
+adb version
+```
+
+仅使用 local.properties 或 ANDROID_SDK_ROOT 时，可以按[使用指南第1节](docs/使用指南.md#1-先打开应用)定位 ADB。`local.properties` 供 Gradle 查找 SDK，终端还需要单独找到 adb。以下示例适用于只有一台在线设备的情况，多设备时在每条 adb 命令加 `-s 实际设备号`。
 
 ```powershell
 .\gradlew.bat assembleDebug assembleDebugAndroidTest
