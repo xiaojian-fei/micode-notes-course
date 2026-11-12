@@ -79,14 +79,40 @@ public class NoteFilterDialog extends AlertDialog {
         super.onCreate(state);
         getButton(BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener(){
             public void onClick(View view) {
+                // Report each problem on the field that actually caused it.
+                // Reporting every failure on the end-date field pointed at the
+                // wrong input, because "Modified from" is validated first.
+                mStart.setError(null);
+                mEnd.setError(null);
+                Long start,end;
                 try {
-                    Long start=NoteFilter.parseDay(mStart.getText().toString(),false);
-                    Long end=NoteFilter.parseDay(mEnd.getText().toString(),true);
-                    int selected=mColor.getSelectedItemPosition();
-                    NoteFilter filter=new NoteFilter(mFolderIds.get(mFolder.getSelectedItemPosition()),
+                    start=NoteFilter.parseDay(mStart.getText().toString(),false);
+                } catch(IllegalArgumentException ex){
+                    mStart.setError(ex.getMessage());
+                    mStart.requestFocus();
+                    return;
+                }
+                try {
+                    end=NoteFilter.parseDay(mEnd.getText().toString(),true);
+                } catch(IllegalArgumentException ex){
+                    mEnd.setError(ex.getMessage());
+                    mEnd.requestFocus();
+                    return;
+                }
+                int selected=mColor.getSelectedItemPosition();
+                NoteFilter filter;
+                try {
+                    filter=new NoteFilter(mFolderIds.get(mFolder.getSelectedItemPosition()),
                             selected==0?null:selected-1,start,end);
-                    mListener.onApply(filter);dismiss();
-                } catch(IllegalArgumentException ex){mEnd.setError(ex.getMessage());}
+                } catch(IllegalArgumentException ex){
+                    // Only an inverted date range reaches this branch: both fields
+                    // take part in the conflict, so mark both of them.
+                    mStart.setError(ex.getMessage());
+                    mEnd.setError(ex.getMessage());
+                    mStart.requestFocus();
+                    return;
+                }
+                mListener.onApply(filter);dismiss();
             }
         });
     }
